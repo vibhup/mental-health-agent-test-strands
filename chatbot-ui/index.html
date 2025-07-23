@@ -14,12 +14,12 @@
                 <div class="agent-avatar">🤗</div>
                 <div class="header-text">
                     <h1>Mental Health Support</h1>
-                    <p>I'm here to listen and support you</p>
+                    <p>Direct AgentCore Integration with Memory</p>
                 </div>
             </div>
             <div class="status-indicator">
                 <span class="status-dot" id="statusDot"></span>
-                <span class="status-text" id="statusText">Connecting...</span>
+                <span class="status-text" id="statusText">Connecting to AgentCore...</span>
             </div>
         </div>
 
@@ -27,7 +27,7 @@
             <div class="message agent-message">
                 <div class="message-avatar">🤗</div>
                 <div class="message-content">
-                    <p>Hello! I'm here to provide mental health support and listen to whatever you'd like to share. How are you feeling today?</p>
+                    <p>Hello! I'm your mental health support agent powered by AWS AgentCore with memory capabilities. I can remember our conversations and provide personalized support. How are you feeling today?</p>
                     <div class="message-time">Just now</div>
                 </div>
             </div>
@@ -51,6 +51,9 @@
                 <div class="disclaimer">
                     ⚠️ This is not a replacement for professional mental health care. 
                     If you're in crisis, please contact emergency services or a crisis hotline.
+                </div>
+                <div class="tech-info">
+                    🧠 Powered by AWS AgentCore Runtime + Memory | 🔒 Secure Direct Integration
                 </div>
             </div>
         </div>
@@ -76,6 +79,10 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- AWS SDK for JavaScript (Browser) -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1691.0.min.js"></script>
+    
+    <!-- Direct AgentCore Integration -->
+    <script src="agentcore-direct.js"></script>
 </body>
 </html>
