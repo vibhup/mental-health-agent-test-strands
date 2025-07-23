@@ -52,21 +52,34 @@ User Input → Strands Agent (Claude Sonnet 4) → Risk Analysis → Admin Alert
    - Amazon Bedrock (Claude Sonnet 4 access)
    - Amazon SES (send email)
 
-### Usage
+## 🚀 Deployment Options
 
-**Interactive Mode:**
+### Local Development
 ```bash
 python mental_health_agent.py
 ```
 
-**Programmatic Usage:**
-```python
-from mental_health_agent import MentalHealthAgent
+### Production Deployment with Bedrock AgentCore Runtime
 
-agent = MentalHealthAgent()
-response = agent.chat("I've been feeling really down lately...")
-print(response)
+For production-ready deployment with enterprise-grade security and scalability:
+
+```bash
+# Deploy to AgentCore Runtime
+python agentcore_deployment.py
+
+# Test the deployed agent
+python agentcore_client.py <AGENT_ID>
 ```
+
+**AgentCore Benefits:**
+- **Serverless Runtime**: No infrastructure management
+- **Auto-scaling**: Handles traffic spikes automatically  
+- **Session Isolation**: Each conversation runs in isolated microVM
+- **Built-in Memory**: Conversational memory across sessions
+- **Observability**: Full tracing and monitoring
+- **Security**: Enterprise-grade identity and access management
+
+See [AGENTCORE_DEPLOYMENT.md](AGENTCORE_DEPLOYMENT.md) for detailed deployment guide.
 
 ## 🔧 Configuration
 

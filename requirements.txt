@@ -2,3 +2,8 @@ strands-agents>=1.0.0
 boto3>=1.34.0
 python-dotenv>=1.0.0
 botocore>=1.34.0
+
+# Additional dependencies for AgentCore deployment
+uuid
+json
+datetime
