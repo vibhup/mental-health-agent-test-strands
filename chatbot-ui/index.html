@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Support Chat</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="agent-avatar">🤗</div>
+                <div class="header-text">
+                    <h1>Mental Health Support</h1>
+                    <p>I'm here to listen and support you</p>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span class="status-text" id="statusText">Connecting...</span>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message agent-message">
+                <div class="message-avatar">🤗</div>
+                <div class="message-content">
+                    <p>Hello! I'm here to provide mental health support and listen to whatever you'd like to share. How are you feeling today?</p>
+                    <div class="message-time">Just now</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="input-wrapper">
+                <textarea 
+                    id="messageInput" 
+                    placeholder="Type your message here... Press Enter to send"
+                    rows="1"
+                ></textarea>
+                <button id="sendButton" class="send-button" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-footer">
+                <div class="disclaimer">
+                    ⚠️ This is not a replacement for professional mental health care. 
+                    If you're in crisis, please contact emergency services or a crisis hotline.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Crisis Resources Modal -->
+    <div id="crisisModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🚨 Crisis Resources</h2>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p><strong>If you're having thoughts of self-harm or suicide, please reach out immediately:</strong></p>
+                <ul class="crisis-resources">
+                    <li><strong>National Suicide Prevention Lifeline:</strong> <a href="tel:988">988</a></li>
+                    <li><strong>Crisis Text Line:</strong> Text HOME to <a href="sms:741741">741741</a></li>
+                    <li><strong>Emergency Services:</strong> <a href="tel:911">911</a></li>
+                    <li><strong>SAMHSA National Helpline:</strong> <a href="tel:1-800-662-4357">1-800-662-HELP</a></li>
+                </ul>
+                <p>You are not alone. Help is available 24/7.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
