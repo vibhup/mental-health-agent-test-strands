@@ -51,21 +51,33 @@ class DirectAgentCoreChatbot {
                     IdentityPoolId: this.config.identityPoolId
                 });
                 
-                // Initialize AgentCore client
-                this.agentCore = new AWS.BedrockAgentCore();
+                // Wait for credentials to be obtained
+                await new Promise((resolve, reject) => {
+                    AWS.config.credentials.get((err) => {
+                        if (err) {
+                            console.error('Credentials error:', err);
+                            reject(err);
+                        } else {
+                            console.log('✅ AWS credentials obtained');
+                            resolve();
+                        }
+                    });
+                });
                 
+                // Initialize the correct client for AgentCore
+                // Note: We'll use direct HTTP calls since AWS SDK for browser may not have AgentCore client
                 this.updateStatus('online', 'Connected to AgentCore');
                 this.isConnected = true;
+                
+                console.log('✅ AWS SDK initialized successfully');
+                
             } else {
-                // Fallback: Use intelligent responses without AWS SDK
-                this.updateStatus('online', 'Connected (Fallback Mode)');
-                this.isConnected = true;
+                throw new Error('AWS SDK not loaded');
             }
         } catch (error) {
             console.error('AWS initialization failed:', error);
-            // Still allow fallback mode
-            this.updateStatus('online', 'Connected (Fallback Mode)');
-            this.isConnected = true;
+            this.updateStatus('error', 'Connection Error');
+            this.isConnected = false;
         }
     }
     
@@ -138,6 +150,8 @@ class DirectAgentCoreChatbot {
         this.showTypingIndicator();
         
         try {
+            this.updateStatus('processing', 'Processing...');
+            
             // Store message in AgentCore Memory
             await this.storeInMemory(message, 'USER');
             
@@ -159,99 +173,189 @@ class DirectAgentCoreChatbot {
             // Check for crisis indicators
             this.checkForCrisisKeywords(message);
             
+            this.updateStatus('online', 'Connected to AgentCore');
+            
         } catch (error) {
             console.error('Error sending message:', error);
             this.hideTypingIndicator();
-            this.addMessage('I apologize, but I\'m having technical difficulties right now. Please know that your feelings are valid and help is available. If you\'re in crisis, please contact emergency services or a crisis hotline immediately.', 'agent');
-            this.updateStatus('error', 'Connection Error');
+            
+            // Show specific error message
+            let errorMessage = 'I apologize, but I\'m having technical difficulties right now. ';
+            
+            if (error.message.includes('403') || error.message.includes('AccessDenied')) {
+                errorMessage += 'There seems to be an authentication issue. ';
+                this.updateStatus('error', 'Authentication Error');
+            } else if (error.message.includes('404')) {
+                errorMessage += 'The service endpoint could not be found. ';
+                this.updateStatus('error', 'Service Not Found');
+            } else if (error.message.includes('500')) {
+                errorMessage += 'The service is temporarily unavailable. ';
+                this.updateStatus('error', 'Service Error');
+            } else {
+                errorMessage += 'Please try again in a moment. ';
+                this.updateStatus('error', 'Connection Error');
+            }
+            
+            errorMessage += 'If you\'re in crisis, please contact emergency services or a crisis hotline immediately.';
+            
+            this.addMessage(errorMessage, 'agent');
+            
+            // Try to reconnect after a delay
+            setTimeout(() => {
+                this.initializeAWS();
+            }, 5000);
         }
     }
     
     async storeInMemory(message, role) {
         try {
-            if (this.agentCore) {
-                // Direct AgentCore Memory API call
-                await this.agentCore.createEvent({
-                    memoryId: this.config.memoryId,
-                    actorId: this.userId,
-                    sessionId: this.sessionId,
-                    eventTimestamp: new Date().toISOString(),
-                    payload: {
-                        message: message,
+            console.log(`📝 Storing ${role} message in AgentCore Memory...`);
+            
+            // Prepare the payload in correct format
+            const payload = [
+                {
+                    conversational: {
                         role: role,
-                        timestamp: new Date().toISOString()
+                        content: {
+                            text: message
+                        }
                     }
-                }).promise();
-                
-                console.log(`✅ Stored ${role} message in AgentCore Memory`);
+                }
+            ];
+            
+            const requestBody = {
+                actorId: this.userId,
+                sessionId: this.sessionId,
+                eventTimestamp: Math.floor(Date.now() / 1000),
+                payload: payload
+            };
+            
+            // Use AWS SDK to make signed request
+            const endpoint = `https://bedrock-agentcore.${this.config.region}.amazonaws.com/memories/${this.config.memoryId}/events`;
+            
+            const request = new AWS.HttpRequest(endpoint, this.config.region);
+            request.method = 'POST';
+            request.headers['Content-Type'] = 'application/json';
+            request.body = JSON.stringify(requestBody);
+            
+            const signer = new AWS.Signers.V4(request, 'bedrock-agentcore');
+            signer.addAuthorization(AWS.config.credentials, new Date());
+            
+            const response = await fetch(request.endpoint.href, {
+                method: request.method,
+                headers: request.headers,
+                body: request.body
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log(`✅ Stored ${role} message successfully`);
+                return true;
+            } else {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
+            
         } catch (error) {
             console.warn('Memory storage failed:', error);
+            return false;
         }
     }
     
     async getConversationContext() {
         try {
-            if (this.agentCore) {
-                const response = await this.agentCore.listEvents({
-                    memoryId: this.config.memoryId,
-                    actorId: this.userId,
-                    sessionId: this.sessionId,
-                    maxResults: 10
-                }).promise();
+            console.log('📚 Retrieving conversation context...');
+            
+            // Use AWS SDK to make signed request
+            const endpoint = `https://bedrock-agentcore.${this.config.region}.amazonaws.com/memories/${this.config.memoryId}/events?actorId=${this.userId}&sessionId=${this.sessionId}&maxResults=10`;
+            
+            const request = new AWS.HttpRequest(endpoint, this.config.region);
+            request.method = 'GET';
+            request.headers['Content-Type'] = 'application/json';
+            
+            const signer = new AWS.Signers.V4(request, 'bedrock-agentcore');
+            signer.addAuthorization(AWS.config.credentials, new Date());
+            
+            const response = await fetch(request.endpoint.href, {
+                method: request.method,
+                headers: request.headers
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                const events = result.events || [];
                 
                 const context = [];
-                for (const event of response.events || []) {
-                    const payload = event.payload || {};
-                    context.push({
-                        message: payload.message || '',
-                        role: payload.role || '',
-                        timestamp: payload.timestamp || ''
-                    });
+                for (const event of events) {
+                    const payload = event.payload || [];
+                    if (payload.length > 0 && payload[0].conversational) {
+                        const conv = payload[0].conversational;
+                        context.push({
+                            message: conv.content.text,
+                            role: conv.role,
+                            timestamp: event.eventTimestamp
+                        });
+                    }
                 }
                 
                 console.log(`📚 Retrieved ${context.length} context messages`);
                 return context.slice(-6); // Last 6 messages
+            } else {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
+            
         } catch (error) {
             console.warn('Context retrieval failed:', error);
+            return [];
         }
-        
-        return [];
     }
     
     async callAgentCoreRuntime(message, context) {
         try {
-            if (this.agentCore) {
-                // Direct AgentCore Runtime call
-                const response = await this.agentCore.invokeAgentRuntime({
-                    agentRuntimeArn: this.config.runtimeArn,
-                    runtimeSessionId: this.sessionId,
-                    payload: JSON.stringify({
-                        input: message,
-                        sessionId: this.sessionId,
-                        actorId: this.userId,
-                        context: context
-                    }),
-                    contentType: 'application/json',
-                    accept: 'application/json'
-                }).promise();
-                
-                const responseBody = response.response.read().toString();
-                const agentResponse = JSON.parse(responseBody);
+            console.log('🤖 Calling AgentCore Runtime...');
+            
+            const requestBody = JSON.stringify({
+                input: message,
+                sessionId: this.sessionId,
+                actorId: this.userId,
+                context: context
+            });
+            
+            // Use correct AgentCore Runtime API endpoint format
+            const endpoint = `https://bedrock-agentcore.${this.config.region}.amazonaws.com/runtimes/${encodeURIComponent(this.config.runtimeArn)}/invocations`;
+            
+            const request = new AWS.HttpRequest(endpoint, this.config.region);
+            request.method = 'POST';
+            request.headers['Content-Type'] = 'application/json';
+            request.headers['Accept'] = 'application/json';
+            request.headers['X-Amzn-Bedrock-AgentCore-Runtime-Session-Id'] = this.sessionId;
+            request.body = requestBody;
+            
+            const signer = new AWS.Signers.V4(request, 'bedrock-agentcore');
+            signer.addAuthorization(AWS.config.credentials, new Date());
+            
+            const response = await fetch(request.endpoint.href, {
+                method: request.method,
+                headers: request.headers,
+                body: request.body
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ AgentCore Runtime responded successfully');
                 
                 return {
-                    response: agentResponse.response || 'I\'m here to support you.',
+                    response: result.response || result.output || 'I\'m here to support you.',
                     sessionId: this.sessionId,
                     status: 'success'
                 };
             } else {
-                // Fallback response generation
-                return this.generateFallbackResponse(message, context);
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
+            
         } catch (error) {
             console.error('AgentCore Runtime call failed:', error);
-            return this.generateFallbackResponse(message, context);
+            throw error;
         }
     }
     
