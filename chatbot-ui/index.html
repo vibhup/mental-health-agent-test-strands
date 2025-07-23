@@ -14,12 +14,12 @@
                 <div class="agent-avatar">🤗</div>
                 <div class="header-text">
                     <h1>Mental Health Support</h1>
-                    <p>Direct AgentCore Integration with Memory</p>
+                    <p>JWT-Enabled Direct AgentCore Integration</p>
                 </div>
             </div>
             <div class="status-indicator">
                 <span class="status-dot" id="statusDot"></span>
-                <span class="status-text" id="statusText">Connecting to AgentCore...</span>
+                <span class="status-text" id="statusText">Initializing JWT Authentication...</span>
             </div>
         </div>
 
@@ -27,7 +27,7 @@
             <div class="message agent-message">
                 <div class="message-avatar">🤗</div>
                 <div class="message-content">
-                    <p>Hello! I'm your mental health support agent powered by AWS AgentCore with memory capabilities. I can remember our conversations and provide personalized support. How are you feeling today?</p>
+                    <p>Hello! I'm your mental health support agent powered by AWS AgentCore with JWT authentication. I can now connect directly from your browser without Lambda proxies! How are you feeling today?</p>
                     <div class="message-time">Just now</div>
                 </div>
             </div>
@@ -53,7 +53,7 @@
                     If you're in crisis, please contact emergency services or a crisis hotline.
                 </div>
                 <div class="tech-info">
-                    🧠 Powered by AWS AgentCore Runtime + Memory | 🔒 Secure Direct Integration
+                    🔐 JWT Authentication | 🧠 Direct AgentCore Runtime | 🚀 No Lambda Proxy Needed
                 </div>
             </div>
         </div>
@@ -79,10 +79,7 @@
         </div>
     </div>
 
-    <!-- AWS SDK for JavaScript (Browser) -->
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1691.0.min.js"></script>
-    
-    <!-- Direct AgentCore Integration -->
-    <script src="agentcore-direct.js"></script>
+    <!-- JWT-Enabled AgentCore Integration -->
+    <script src="jwt-agentcore-direct.js"></script>
 </body>
 </html>
