@@ -1,15 +1,24 @@
-FROM public.ecr.aws/lambda/python:3.11
+FROM python:3.11-slim
 
 # Install system dependencies
-RUN yum update -y && yum install -y gcc
+RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
-RUN pip install -r requirements.txt
+COPY requirements.txt .
+RUN pip install boto3 python-dotenv
 
 # Copy application code
-COPY mental_health_agent.py ${LAMBDA_TASK_ROOT}
-COPY agentcore_handler.py ${LAMBDA_TASK_ROOT}
+COPY simple_mental_health_agent.py .
+COPY agentcore_server.py .
 
-# Set the CMD to your handler
-CMD ["agentcore_handler.handler"]
+# Expose port
+EXPOSE 8080
+
+# Set environment
+ENV PORT=8080
+
+# Run the HTTP server
+CMD ["python", "agentcore_server.py"]
