@@ -23,7 +23,7 @@ class MentalHealthAgent:
         self.ses_client = boto3.client('ses', region_name='us-east-1')
         
         # Admin email
-        self.admin_email = "vibhup@amazon.com"
+        self.admin_email = "admin.alerts.mh@example.com"
         
         # Mental health risk indicators
         self.risk_indicators = [

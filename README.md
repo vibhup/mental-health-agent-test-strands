@@ -148,7 +148,7 @@ If you or someone you know is in crisis:
 
 For technical support or questions:
 - Create an issue in this repository
-- Contact: vibhup@amazon.com
+- Contact: admin.alerts.mh@example.com
 
 ## 🙏 Acknowledgments
 
