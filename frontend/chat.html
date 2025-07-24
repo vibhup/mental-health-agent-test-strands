@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Support Chat</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- AWS SDK for JavaScript -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1563.0.min.js"></script>
+    <!-- Amazon Cognito Identity SDK -->
+    <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
+    
+    <style>
+        /* Debug Window Styles */
+        .debug-window {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            border-top: 2px solid #00ff00;
+            z-index: 1000;
+        }
+        
+        .debug-header {
+            background: #1a1a1a;
+            padding: 8px 15px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .debug-title {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        .debug-toggle {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+        
+        .debug-content {
+            padding: 10px 15px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .debug-log {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        
+        .debug-timestamp {
+            color: #888;
+            margin-right: 10px;
+        }
+        
+        .debug-level-info {
+            color: #00ff00;
+        }
+        
+        .debug-level-warn {
+            color: #ffaa00;
+        }
+        
+        .debug-level-error {
+            color: #ff4444;
+        }
+        
+        .debug-level-success {
+            color: #44ff44;
+        }
+        
+        /* Adjust chat container to account for debug window */
+        .chat-container {
+            margin-bottom: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="agent-avatar">🤗</div>
+                <div class="header-text">
+                    <h1>Mental Health Support</h1>
+                    <p>Secure AI-Powered Mental Health Assistant</p>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot connecting" id="statusDot"></span>
+                <span class="status-text" id="statusText">Initializing...</span>
+            </div>
+            <div class="auth-controls">
+                <span id="userEmail" class="user-email"></span>
+                <button id="logoutButton" class="auth-button">Logout</button>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be added here dynamically -->
+        </div>
+        
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type your message here..." disabled>
+            <button id="sendButton" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Crisis Resources Modal -->
+    <div id="crisisModal" class="modal" style="display: none;">
+        <div class="modal-content crisis-modal">
+            <span class="close" id="closeModal">&times;</span>
+            <div class="crisis-content">
+                <h2>🚨 Crisis Resources</h2>
+                <p><strong>If you're in immediate danger, please contact emergency services:</strong></p>
+                
+                <div class="crisis-contacts">
+                    <div class="crisis-item">
+                        <strong>Emergency Services:</strong> <a href="tel:911">911</a>
+                    </div>
+                    <div class="crisis-item">
+                        <strong>National Suicide Prevention Lifeline:</strong> <a href="tel:988">988</a>
+                    </div>
+                    <div class="crisis-item">
+                        <strong>Crisis Text Line:</strong> Text HOME to <a href="sms:741741">741741</a>
+                    </div>
+                    <div class="crisis-item">
+                        <strong>National Domestic Violence Hotline:</strong> <a href="tel:18007997233">1-800-799-7233</a>
+                    </div>
+                </div>
+                
+                <p><strong>Remember:</strong> You are not alone. Help is available 24/7.</p>
+                
+                <button onclick="document.getElementById('crisisModal').style.display='none'" class="crisis-close-btn">
+                    I understand
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication Required Modal -->
+    <div id="authRequiredModal" class="modal" style="display: none;">
+        <div class="modal-content login-modal">
+            <h2>🔐 Authentication Required</h2>
+            <p>Your session has expired or you are not logged in.</p>
+            <p>Please log in to continue using the mental health support chat.</p>
+            
+            <button onclick="window.location.href='login.html'" class="login-submit-button">
+                Go to Login Page
+            </button>
+        </div>
+    </div>
+
+    <!-- Debug Window -->
+    <div id="debugWindow" class="debug-window">
+        <div class="debug-header">
+            <span class="debug-title">🐛 DEBUG: Chat Portal Flow</span>
+            <button class="debug-toggle" onclick="toggleDebug()">Minimize</button>
+        </div>
+        <div id="debugContent" class="debug-content">
+            <div id="debugLog"></div>
+        </div>
+    </div>
+
+    <script src="chat-portal-debug.js"></script>
+</body>
+</html>

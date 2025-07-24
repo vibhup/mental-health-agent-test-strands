@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Support - Redirecting</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .redirect-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #1f2937;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        p {
+            color: #6b7280;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        .manual-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        .manual-link:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Debug Window Styles */
+        .debug-window {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 2px solid #00ff00;
+            z-index: 1000;
+        }
+        
+        .debug-header {
+            background: #1a1a1a;
+            padding: 8px 15px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .debug-title {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        .debug-toggle {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+        
+        .debug-content {
+            padding: 10px 15px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .debug-log {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        
+        .debug-timestamp {
+            color: #888;
+            margin-right: 10px;
+        }
+        
+        .debug-level-info {
+            color: #00ff00;
+        }
+        
+        .debug-level-warn {
+            color: #ffaa00;
+        }
+        
+        .debug-level-error {
+            color: #ff4444;
+        }
+        
+        .debug-level-success {
+            color: #44ff44;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="redirect-container">
+        <div class="logo">🧠</div>
+        <h1>Mental Health Support</h1>
+        <p>Redirecting you to the secure login page...</p>
+        
+        <div class="loading-spinner"></div>
+        
+        <p style="font-size: 0.9em; color: #9ca3af;">
+            If you are not redirected automatically, 
+            <a href="login.html" class="manual-link">click here to login</a>
+        </p>
+    </div>
+
+    <!-- Debug Window -->
+    <div id="debugWindow" class="debug-window">
+        <div class="debug-header">
+            <span class="debug-title">🐛 DEBUG: Index Page Flow</span>
+            <button class="debug-toggle" onclick="toggleDebug()">Minimize</button>
+        </div>
+        <div id="debugContent" class="debug-content">
+            <div id="debugLog"></div>
+        </div>
+    </div>
+
+    <script>
+        // Debug logging system
+        class DebugLogger {
+            constructor() {
+                this.logContainer = document.getElementById('debugLog');
+                this.isMinimized = false;
+                this.logCount = 0;
+                this.startTime = Date.now();
+                
+                this.log('INFO', 'Debug system initialized');
+                this.log('INFO', 'Page: Index (Redirect Page)');
+                this.log('INFO', 'Flow Step: 1 - Entry Point');
+            }
+            
+            log(level, message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const elapsed = ((Date.now() - this.startTime) / 1000).toFixed(1);
+                
+                const logEntry = document.createElement('div');
+                logEntry.className = `debug-log debug-level-${level.toLowerCase()}`;
+                logEntry.innerHTML = `
+                    <span class="debug-timestamp">[${timestamp}] [+${elapsed}s]</span>
+                    <strong>[${level}]</strong> ${message}
+                `;
+                
+                this.logContainer.appendChild(logEntry);
+                this.logContainer.scrollTop = this.logContainer.scrollHeight;
+                
+                // Also log to console
+                console.log(`[DEBUG] [${level}] ${message}`);
+                
+                this.logCount++;
+                if (this.logCount > 50) {
+                    // Remove old entries to prevent memory issues
+                    const firstChild = this.logContainer.firstChild;
+                    if (firstChild) {
+                        this.logContainer.removeChild(firstChild);
+                    }
+                }
+            }
+        }
+        
+        // Initialize debug logger
+        const debug = new DebugLogger();
+        
+        // Debug window toggle
+        function toggleDebug() {
+            const content = document.getElementById('debugContent');
+            const button = document.querySelector('.debug-toggle');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                button.textContent = 'Minimize';
+                debug.log('INFO', 'Debug window expanded');
+            } else {
+                content.style.display = 'none';
+                button.textContent = 'Expand';
+                debug.log('INFO', 'Debug window minimized');
+            }
+        }
+        
+        // Track page load process
+        debug.log('INFO', 'DOM loaded, initializing redirect process');
+        debug.log('INFO', 'Current URL: ' + window.location.href);
+        debug.log('INFO', 'User Agent: ' + navigator.userAgent.substring(0, 50) + '...');
+        
+        // Check for existing authentication
+        debug.log('INFO', 'Checking for existing authentication...');
+        const existingToken = localStorage.getItem('mental_health_jwt_token');
+        const tokenExpiry = localStorage.getItem('mental_health_token_expiry');
+        
+        if (existingToken && tokenExpiry) {
+            const expiryTime = new Date(tokenExpiry);
+            const now = new Date();
+            
+            debug.log('INFO', 'Found existing JWT token');
+            debug.log('INFO', 'Token expires: ' + expiryTime.toLocaleString());
+            
+            if (expiryTime > now) {
+                debug.log('SUCCESS', 'Valid session found! Redirecting to chat portal...');
+                setTimeout(() => {
+                    debug.log('INFO', 'Executing redirect to chat.html');
+                    window.location.href = 'chat.html';
+                }, 1000);
+            } else {
+                debug.log('WARN', 'Token expired, clearing old session');
+                localStorage.removeItem('mental_health_jwt_token');
+                localStorage.removeItem('mental_health_token_expiry');
+                localStorage.removeItem('mental_health_user_email');
+                debug.log('INFO', 'Proceeding with normal login flow');
+            }
+        } else {
+            debug.log('INFO', 'No existing authentication found');
+            debug.log('INFO', 'Proceeding with login redirect');
+        }
+        
+        // Set up redirect timer
+        let countdown = 3;
+        debug.log('INFO', `Setting up redirect timer: ${countdown} seconds`);
+        
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            debug.log('INFO', `Redirect in ${countdown} seconds...`);
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                debug.log('SUCCESS', 'Redirect timer completed');
+                debug.log('INFO', 'Executing redirect to login.html');
+                window.location.href = 'login.html';
+            }
+        }, 1000);
+        
+        // Track user interactions
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('manual-link')) {
+                debug.log('INFO', 'User clicked manual login link');
+                debug.log('INFO', 'Canceling automatic redirect');
+                clearInterval(countdownInterval);
+            }
+        });
+        
+        // Track page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                debug.log('INFO', 'Page hidden (user switched tabs/minimized)');
+            } else {
+                debug.log('INFO', 'Page visible (user returned to tab)');
+            }
+        });
+        
+        // Track errors
+        window.addEventListener('error', (e) => {
+            debug.log('ERROR', `JavaScript error: ${e.message}`);
+            debug.log('ERROR', `Error location: ${e.filename}:${e.lineno}`);
+        });
+        
+        // Track before unload
+        window.addEventListener('beforeunload', () => {
+            debug.log('INFO', 'Page unloading - redirect in progress');
+        });
+        
+        debug.log('INFO', 'All event listeners registered');
+        debug.log('INFO', 'Index page initialization complete');
+        debug.log('INFO', 'Flow Status: Waiting for redirect timer or user action');
+    </script>
+</body>
+</html>

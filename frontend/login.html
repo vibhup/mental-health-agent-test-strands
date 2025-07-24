@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Support - Login</title>
+    <link rel="stylesheet" href="login-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- AWS SDK for JavaScript -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1563.0.min.js"></script>
+    <!-- Amazon Cognito Identity SDK -->
+    <script src="https://unpkg.com/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
+    
+    <style>
+        /* Debug Window Styles */
+        .debug-window {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 250px;
+            overflow-y: auto;
+            border-top: 2px solid #00ff00;
+            z-index: 1000;
+        }
+        
+        .debug-header {
+            background: #1a1a1a;
+            padding: 8px 15px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .debug-title {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        .debug-toggle {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+        
+        .debug-content {
+            padding: 10px 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .debug-log {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        
+        .debug-timestamp {
+            color: #888;
+            margin-right: 10px;
+        }
+        
+        .debug-level-info {
+            color: #00ff00;
+        }
+        
+        .debug-level-warn {
+            color: #ffaa00;
+        }
+        
+        .debug-level-error {
+            color: #ff4444;
+        }
+        
+        .debug-level-success {
+            color: #44ff44;
+        }
+        
+        /* Adjust body padding to account for debug window */
+        body {
+            padding-bottom: 250px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <div class="logo-icon">🧠</div>
+                    <h1>Mental Health Support</h1>
+                </div>
+                <p class="subtitle">Secure AI-Powered Mental Health Assistance</p>
+            </div>
+            
+            <div class="login-content">
+                <div class="welcome-message">
+                    <h2>🔐 Secure Login Required</h2>
+                    <p>Please authenticate to access your private mental health support agent powered by AWS AgentCore and Claude Sonnet 4.</p>
+                </div>
+                
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="username">
+                            <span class="label-icon">📧</span>
+                            Email Address
+                        </label>
+                        <input type="email" id="username" name="username" required 
+                               placeholder="Enter your email address" 
+                               value="testuser@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">
+                            <span class="label-icon">🔒</span>
+                            Password
+                        </label>
+                        <input type="password" id="password" name="password" required 
+                               placeholder="Enter your password" 
+                               value="MentalHealth123!">
+                    </div>
+                    
+                    <div id="loginError" class="error-message"></div>
+                    <div id="loginStatus" class="status-message"></div>
+                    
+                    <button type="submit" id="loginButton" class="login-button">
+                        <span class="button-icon">🔐</span>
+                        Login Securely
+                    </button>
+                </form>
+                
+                <div class="demo-info">
+                    <div class="demo-credentials">
+                        <h3>🧪 Demo Credentials</h3>
+                        <div class="credential-item">
+                            <strong>Email:</strong> testuser@example.com
+                        </div>
+                        <div class="credential-item">
+                            <strong>Password:</strong> MentalHealth123!
+                        </div>
+                        <p class="demo-note">These are test credentials for demonstration purposes.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="login-footer">
+                <div class="features">
+                    <div class="feature">
+                        <span class="feature-icon">🤖</span>
+                        <span>AI-Powered Support</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🔒</span>
+                        <span>Secure & Private</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🧠</span>
+                        <span>Memory-Enhanced</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🚨</span>
+                        <span>Crisis Detection</span>
+                    </div>
+                </div>
+                
+                <div class="tech-info">
+                    <p>Powered by AWS AgentCore • Claude Sonnet 4 • Cognito Authentication</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <p>Authenticating...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Window -->
+    <div id="debugWindow" class="debug-window">
+        <div class="debug-header">
+            <span class="debug-title">🐛 DEBUG: Login Page Flow</span>
+            <button class="debug-toggle" onclick="toggleDebug()">Minimize</button>
+        </div>
+        <div id="debugContent" class="debug-content">
+            <div id="debugLog"></div>
+        </div>
+    </div>
+
+    <script src="login-auth-debug.js"></script>
+</body>
+</html>
